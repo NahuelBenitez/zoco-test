@@ -1,51 +1,39 @@
-// Mock users database
-const users = [
-    {
-      id: 1,
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: 'password123',
-      role: 'admin',
-    },
-    {
-      id: 2,
-      name: 'Regular User',
-      email: 'user@example.com',
-      password: 'password123',
-      role: 'user',
-    },
-  ];
-  
-  // Mock data for studies and addresses
-  const studiesData = {
-    1: [
-      { id: 1, institution: 'Harvard University', degree: 'Computer Science', year: 2015 },
-      { id: 2, institution: 'MIT', degree: 'Master in AI', year: 2017 },
-    ],
-    2: [
-      { id: 3, institution: 'Stanford University', degree: 'Software Engineering', year: 2018 },
-    ],
+import initialData from '../data/data.json';
+
+// Clave para localStorage
+const DB_KEY = 'user-management-app-data';
+
+// Cargar datos iniciales o existentes
+const loadDatabase = () => {
+  const savedData = localStorage.getItem(DB_KEY);
+  return savedData ? JSON.parse(savedData) : { 
+    users: [...initialData.users],
+    studiesData: {...initialData.studiesData},
+    addressesData: {...initialData.addressesData}
   };
-  
-  const addressesData = {
-    1: [
-      { id: 1, street: '123 Main St', city: 'Boston', state: 'MA', zip: '02108', country: 'USA' },
-    ],
-    2: [
-      { id: 2, street: '456 Oak Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'USA' },
-    ],
-  };
-  
-  // Mock API functions
-  export const login = async (email, password) => {
+};
+
+let database = loadDatabase();
+
+// Guardar cambios en localStorage
+const saveDatabase = () => {
+  localStorage.setItem(DB_KEY, JSON.stringify(database));
+};
+
+// API Mock completa
+export const authAPI = {
+  // Autenticación
+  login: async (email, password) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const user = users.find(u => u.email === email && u.password === password);
-        
+        const user = database.users.find(u => 
+          u.email === email && u.password === password
+        );
+
         if (user) {
           resolve({
             success: true,
-            token: 'mock-token-' + user.id,
+            token: `mock-token-${user.id}`,
             user: { id: user.id, name: user.name, email: user.email },
             role: user.role,
           });
@@ -57,47 +45,248 @@ const users = [
         }
       }, 500);
     });
-  };
-  
-  export const getUsers = async () => {
+  },
+
+  // Operaciones de usuario
+  getUsers: async () => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(users.map(user => ({ 
-          id: user.id, 
-          name: user.name, 
-          email: user.email,
-          role: user.role 
-        })));
+        resolve(
+          database.users.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          }))
+        );
       }, 500);
     });
-  };
-  
-  export const getUserStudies = async (userId) => {
+  },
+
+  getUserById: async (userId) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(studiesData[userId] || []);
+        const user = database.users.find(u => u.id === userId);
+        resolve(user ? {...user, password: undefined} : null);
       }, 500);
     });
-  };
-  
-  export const getUserAddresses = async (userId) => {
+  },
+
+  getUserProfile: async (userId) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(addressesData[userId] || []);
+        const user = database.users.find(u => u.id === userId);
+        if (user) {
+          resolve({
+            ...user,
+            password: undefined,
+            studies: database.studiesData[userId] || [],
+            addresses: database.addressesData[userId] || []
+          });
+        } else {
+          resolve(null);
+        }
       }, 500);
     });
-  };
-  
-  export const createUser = async (userData) => {
+  },
+
+  createUser: async (userData) => {
     return new Promise((resolve) => {
       setTimeout(() => {
         const newUser = {
-          id: users.length + 1,
+          id: database.users.length + 1,
           ...userData,
-          password: 'defaultPassword', // In a real app, this would be hashed
+          password: userData.password || 'defaultPassword',
         };
-        users.push(newUser);
-        resolve(newUser);
+        
+        database.users.push(newUser);
+        database.studiesData[newUser.id] = [];
+        database.addressesData[newUser.id] = [];
+        saveDatabase();
+        
+        resolve({
+          ...newUser,
+          password: undefined
+        });
       }, 500);
     });
-  };
+  },
+
+  updateUser: async (userId, userData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const userIndex = database.users.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+          database.users[userIndex] = {
+            ...database.users[userIndex],
+            ...userData,
+            id: userId, // Asegurar que no se modifique el ID
+            password: database.users[userIndex].password // Mantener la contraseña existente
+          };
+          saveDatabase();
+          resolve({...database.users[userIndex], password: undefined});
+        } else {
+          resolve(null);
+        }
+      }, 500);
+    });
+  },
+
+  // Operaciones de estudios
+  getUserStudies: async (userId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(database.studiesData[userId] || []);
+      }, 500);
+    });
+  },
+
+  getStudyById: async (userId, studyId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const studies = database.studiesData[userId] || [];
+        resolve(studies.find(s => s.id === studyId) || null);
+      }, 500);
+    });
+  },
+
+  addStudy: async (userId, studyData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (!database.studiesData[userId]) {
+          database.studiesData[userId] = [];
+        }
+
+        const newStudy = {
+          id: database.studiesData[userId].length + 1,
+          ...studyData
+        };
+
+        database.studiesData[userId].push(newStudy);
+        saveDatabase();
+        resolve(newStudy);
+      }, 500);
+    });
+  },
+
+  updateStudy: async (userId, studyId, studyData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const studies = database.studiesData[userId] || [];
+        const studyIndex = studies.findIndex(s => s.id === studyId);
+        
+        if (studyIndex !== -1) {
+          database.studiesData[userId][studyIndex] = {
+            ...database.studiesData[userId][studyIndex],
+            ...studyData,
+            id: studyId // Mantener el ID original
+          };
+          saveDatabase();
+          resolve(database.studiesData[userId][studyIndex]);
+        } else {
+          resolve(null);
+        }
+      }, 500);
+    });
+  },
+
+  deleteStudy: async (userId, studyId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (database.studiesData[userId]) {
+          database.studiesData[userId] = database.studiesData[userId].filter(s => s.id !== studyId);
+          saveDatabase();
+          resolve(true);
+        }
+        resolve(false);
+      }, 500);
+    });
+  },
+
+  // Operaciones de direcciones
+  getUserAddresses: async (userId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(database.addressesData[userId] || []);
+      }, 500);
+    });
+  },
+
+  getAddressById: async (userId, addressId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const addresses = database.addressesData[userId] || [];
+        resolve(addresses.find(a => a.id === addressId) || null);
+      }, 500);
+    });
+  },
+
+  addAddress: async (userId, addressData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (!database.addressesData[userId]) {
+          database.addressesData[userId] = [];
+        }
+
+        const newAddress = {
+          id: database.addressesData[userId].length + 1,
+          ...addressData
+        };
+
+        database.addressesData[userId].push(newAddress);
+        saveDatabase();
+        resolve(newAddress);
+      }, 500);
+    });
+  },
+
+  updateAddress: async (userId, addressId, addressData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const addresses = database.addressesData[userId] || [];
+        const addressIndex = addresses.findIndex(a => a.id === addressId);
+        
+        if (addressIndex !== -1) {
+          database.addressesData[userId][addressIndex] = {
+            ...database.addressesData[userId][addressIndex],
+            ...addressData,
+            id: addressId
+          };
+          saveDatabase();
+          resolve(database.addressesData[userId][addressIndex]);
+        } else {
+          resolve(null);
+        }
+      }, 500);
+    });
+  },
+
+  deleteAddress: async (userId, addressId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (database.addressesData[userId]) {
+          database.addressesData[userId] = database.addressesData[userId].filter(a => a.id !== addressId);
+          saveDatabase();
+          resolve(true);
+        }
+        resolve(false);
+      }, 500);
+    });
+  },
+
+  // Utilidades
+  resetDatabase: () => {
+    database = { 
+      users: [...initialData.users],
+      studiesData: {...initialData.studiesData},
+      addressesData: {...initialData.addressesData}
+    };
+    saveDatabase();
+    return database;
+  },
+
+  // Nuevo: Obtener toda la base de datos (solo para desarrollo)
+  getDatabase: () => {
+    return {...database};
+  }
+};

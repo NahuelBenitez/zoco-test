@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -12,45 +12,67 @@ import {
   Paper,
   Link,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
-import { login as mockLogin } from '../../api/auth';
+import { authAPI } from '../../api/auth';
 
 const schema = yup.object().shape({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  email: yup.string().email('Invalid email format').required('Email is required'),
+  password: yup.string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
 });
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loading: authLoading } = useAuth();
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm({
     resolver: yupResolver(schema),
+    mode: 'onChange',
   });
 
   const onSubmit = async (data) => {
     try {
       setError('');
-      const response = await mockLogin(data.email, data.password);
+      setSubmitting(true);
+      
+      const response = await authAPI.login(data.email, data.password);
       
       if (response.success) {
-        login(response.token, response.user, response.role);
+        await login(data.email, data.password); // Ahora el login maneja todo
+        navigate('/dashboard');
       } else {
-        setError(response.message || 'Login failed');
+        setError(response.message || 'Invalid credentials');
       }
     } catch (err) {
-      setError('An error occurred during login');
+      console.error('Login error:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  // Evitar mostrar el formulario mientras se carga la autenticación inicial
+  if (authLoading) {
+    return (
+      <Container maxWidth="xs">
+        <Box display="flex" justifyContent="center" mt={10}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
   return (
-    <Container maxWidth="xs">
+    <Container maxWidth="xs" component="main">
       <Box
         sx={{
           marginTop: 8,
@@ -59,16 +81,22 @@ function Login() {
           alignItems: 'center',
         }}
       >
-        <Typography component="h1" variant="h5">
-          Sign in
+        <Typography component="h1" variant="h5" gutterBottom>
+          Sign in to your account
         </Typography>
-        <Paper sx={{ mt: 3, p: 3, width: '100%' }}>
+        
+        <Paper elevation={3} sx={{ mt: 3, p: 4, width: '100%' }}>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
               {error}
             </Alert>
           )}
-          <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          
+          <Box 
+            component="form" 
+            onSubmit={handleSubmit(onSubmit)} 
+            noValidate
+          >
             <TextField
               margin="normal"
               required
@@ -80,7 +108,9 @@ function Login() {
               {...register('email')}
               error={!!errors.email}
               helperText={errors.email?.message}
+              disabled={submitting}
             />
+            
             <TextField
               margin="normal"
               required
@@ -92,17 +122,48 @@ function Login() {
               {...register('password')}
               error={!!errors.password}
               helperText={errors.password?.message}
+              disabled={submitting}
             />
+            
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mt: 3, mb: 2, py: 1.5 }}
+              disabled={!isValid || submitting}
             >
-              Sign In
+              {submitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Sign In'
+              )}
             </Button>
+            
+            <Box textAlign="center">
+              <Link 
+                component={RouterLink} 
+                to="/forgot-password" 
+                variant="body2"
+                sx={{ textDecoration: 'none' }}
+              >
+                Forgot password?
+              </Link>
+            </Box>
           </Box>
         </Paper>
+        
+        <Box mt={3} textAlign="center">
+          <Typography variant="body2" color="text.secondary">
+            Don't have an account?{' '}
+            <Link 
+              component={RouterLink} 
+              to="/register" 
+              sx={{ fontWeight: 500 }}
+            >
+              Sign up
+            </Link>
+          </Typography>
+        </Box>
       </Box>
     </Container>
   );

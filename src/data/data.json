@@ -1,37 +1,35 @@
-const users = [
+{
+  "users": [
     {
-      id: 1,
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: 'password123',
-      role: 'admin',
+      "id": 1,
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "password": "password123",
+      "role": "admin"
     },
     {
-      id: 2,
-      name: 'Regular User',
-      email: 'user@example.com',
-      password: 'password123',
-      role: 'user',
-    },
-  ];
-  
-  // Mock data for studies and addresses
-  const studiesData = {
-    1: [
-      { id: 1, institution: 'Harvard University', degree: 'Computer Science', year: 2015 },
-      { id: 2, institution: 'MIT', degree: 'Master in AI', year: 2017 },
+      "id": 2,
+      "name": "Regular User",
+      "email": "user@example.com",
+      "password": "password123",
+      "role": "user"
+    }
+  ],
+  "studiesData": {
+    "1": [
+      { "id": 1, "institution": "Harvard University", "degree": "Computer Science", "year": 2015 },
+      { "id": 2, "institution": "MIT", "degree": "Master in AI", "year": 2017 }
     ],
-    2: [
-      { id: 3, institution: 'Stanford University', degree: 'Software Engineering', year: 2018 },
+    "2": [
+      { "id": 3, "institution": "Stanford University", "degree": "Software Engineering", "year": 2018 }
+    ]
+  },
+  "addressesData": {
+    "1": [
+      { "id": 1, "street": "123 Main St", "city": "Boston", "state": "MA", "zip": "02108", "country": "USA" }
     ],
-  };
-  
-  const addressesData = {
-    1: [
-      { id: 1, street: '123 Main St', city: 'Boston', state: 'MA', zip: '02108', country: 'USA' },
-    ],
-    2: [
-      { id: 2, street: '456 Oak Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'USA' },
-    ],
-  };
-  
+    "2": [
+      { "id": 2, "street": "456 Oak Ave", "city": "San Francisco", "state": "CA", "zip": "94102", "country": "USA" }
+    ]
+  }
+}

@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
-import { getUserStudies } from '../../api/auth';
+import { authAPI } from '../../api/auth';
 import StudyFormDialog from '../../components/dashboard/StudyFormDialog';
 
 function Studies() {
@@ -26,7 +26,7 @@ function Studies() {
   useEffect(() => {
     const fetchStudies = async () => {
       try {
-        const data = await getUserStudies(user.id);
+        const data = await authAPI.getUserStudies(user.id);
         setStudies(data);
       } catch (error) {
         console.error('Error fetching studies:', error);
