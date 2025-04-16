@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -15,40 +15,74 @@ import {
   MenuItem,
   Box,
   CircularProgress,
+  Alert,
 } from '@mui/material';
-import { createUser } from '../../api/auth';
+import { authAPI } from '../../api/auth';
 
-const schema = yup.object().shape({
-  name: yup.string().required('Name is required'),
-  email: yup.string().email('Invalid email').required('Email is required'),
-  role: yup.string().required('Role is required'),
-});
-
-function CreateUserDialog({ open, onClose, onCreate }) {
+function CreateUserDialog({ 
+  open, 
+  onClose, 
+  onCreate, 
+  onUpdate, 
+  editingUser,
+  currentUserId 
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  // Definir el esquema Yup dentro del componente para acceder a editingUser
+  const schema = yup.object().shape({
+    name: yup.string().required('Name is required'),
+    email: yup.string().email('Invalid email').required('Email is required'),
+    role: yup.string().required('Role is required'),
+    // Password solo requerido para creación
+    ...(!editingUser && {
+      password: yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .required('Password is required')
+    })
+  });
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
+    mode: 'onChange',
   });
+
+  // Resto del componente permanece igual...
+  // Reset form when editing user changes
+  useEffect(() => {
+    if (editingUser) {
+      setValue('name', editingUser.name);
+      setValue('email', editingUser.email);
+      setValue('role', editingUser.role);
+    } else {
+      reset();
+    }
+  }, [editingUser, reset, setValue]);
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
       setError('');
       
-      const newUser = await createUser(data);
-      onCreate(newUser);
+      if (editingUser) {
+        // Excluir password en la actualización
+        const { password, ...updateData } = data;
+        await onUpdate(updateData);
+      } else {
+        await onCreate(data);
+      }
       
-      onClose();
-      reset();
+      handleClose();
     } catch (err) {
-      setError('Failed to create user');
+      console.error('Error saving user:', err);
+      setError(err.message || 'Failed to save user');
     } finally {
       setLoading(false);
     }
@@ -56,19 +90,30 @@ function CreateUserDialog({ open, onClose, onCreate }) {
 
   const handleClose = () => {
     reset();
+    setError('');
     onClose();
   };
 
+  const isEditing = !!editingUser;
+  const isCurrentUser = editingUser?.id === currentUserId;
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create New User</DialogTitle>
+      <DialogTitle>{isEditing ? 'Edit User' : 'Create New User'}</DialogTitle>
       <DialogContent>
         {error && (
-          <Box color="error.main" mb={2}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
-          </Box>
+          </Alert>
         )}
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+
+        {isEditing && isCurrentUser && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Note: You cannot change your own role
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
             required
@@ -80,7 +125,9 @@ function CreateUserDialog({ open, onClose, onCreate }) {
             {...register('name')}
             error={!!errors.name}
             helperText={errors.name?.message}
+            disabled={loading}
           />
+          
           <TextField
             margin="normal"
             required
@@ -88,23 +135,51 @@ function CreateUserDialog({ open, onClose, onCreate }) {
             id="email"
             label="Email Address"
             autoComplete="email"
+            type="email"
             {...register('email')}
             error={!!errors.email}
             helperText={errors.email?.message}
+            disabled={loading || isEditing} // Email no editable en actualización
           />
-          <FormControl fullWidth margin="normal">
+          
+          <FormControl 
+            fullWidth 
+            margin="normal"
+            error={!!errors.role}
+          >
             <InputLabel id="role-label">Role</InputLabel>
             <Select
               labelId="role-label"
               id="role"
               label="Role"
               {...register('role')}
-              error={!!errors.role}
+              disabled={loading || isCurrentUser}
             >
               <MenuItem value="admin">Admin</MenuItem>
               <MenuItem value="user">User</MenuItem>
             </Select>
+            {errors.role && (
+              <Box color="error.main" fontSize="0.75rem" ml={2} mt={1}>
+                {errors.role.message}
+              </Box>
+            )}
           </FormControl>
+
+          {!isEditing && (
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="password"
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              {...register('password')}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              disabled={loading}
+            />
+          )}
         </Box>
       </DialogContent>
       <DialogActions>
@@ -114,9 +189,15 @@ function CreateUserDialog({ open, onClose, onCreate }) {
         <Button 
           onClick={handleSubmit(onSubmit)} 
           variant="contained"
-          disabled={loading}
+          disabled={loading || !isValid}
         >
-          {loading ? <CircularProgress size={24} /> : 'Create'}
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : isEditing ? (
+            'Update User'
+          ) : (
+            'Create User'
+          )}
         </Button>
       </DialogActions>
     </Dialog>

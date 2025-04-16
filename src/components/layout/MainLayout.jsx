@@ -12,7 +12,13 @@ function MainLayout() {
   }
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        background: 'linear-gradient(to right, #ffffff, #bdc3c7)', // Gradiente de blanco a plateado
+        minHeight: '100vh', // Asegura que el gradiente cubra toda la altura de la pantalla
+      }}
+    >
       <CssBaseline />
       <Navbar />
       <Sidebar />
