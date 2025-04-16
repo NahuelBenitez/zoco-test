@@ -1,30 +1,26 @@
-import { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  Button,
   Paper,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { 
+} from "@mui/material";
+import {
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
-import { 
-  DataGrid, 
-  GridToolbar,
-  GridActionsCellItem 
-} from '@mui/x-data-grid';
-import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../api/auth';
-import StudyFormDialog from '../../components/dashboard/StudyFormDialog';
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
+import { DataGrid, GridToolbar, GridActionsCellItem } from "@mui/x-data-grid";
+import { useAuth } from "../../context/AuthContext";
+import { authAPI } from "../../api/auth";
+import StudyFormDialog from "../../components/dashboard/StudyFormDialog";
 
 function Studies() {
   const [studies, setStudies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [editingStudy, setEditingStudy] = useState(null);
   const { user } = useAuth();
@@ -33,12 +29,12 @@ function Studies() {
     const fetchStudies = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
         const data = await authAPI.getUserStudies(user.id);
         setStudies(data);
       } catch (error) {
-        console.error('Error fetching studies:', error);
-        setError('Failed to load studies. Please try again.');
+        console.error("Error fetching studies:", error);
+        setError("Failed to load studies. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -49,43 +45,45 @@ function Studies() {
 
   const handleCreateStudy = async (studyData) => {
     try {
-      setError('');
+      setError("");
       const newStudy = await authAPI.addStudy(user.id, studyData);
-      setStudies(prev => [...prev, newStudy]);
+      setStudies((prev) => [...prev, newStudy]);
       setOpenDialog(false);
     } catch (error) {
-      console.error('Error creating study:', error);
-      setError('Failed to create study. Please try again.');
+      console.error("Error creating study:", error);
+      setError("Failed to create study. Please try again.");
     }
   };
 
   const handleUpdateStudy = async (studyData) => {
     try {
-      setError('');
+      setError("");
       const updatedStudy = await authAPI.updateStudy(
-        user.id, 
-        editingStudy.id, 
+        user.id,
+        editingStudy.id,
         studyData
       );
-      setStudies(prev => 
-        prev.map(study => study.id === updatedStudy.id ? updatedStudy : study)
+      setStudies((prev) =>
+        prev.map((study) =>
+          study.id === updatedStudy.id ? updatedStudy : study
+        )
       );
       setEditingStudy(null);
       setOpenDialog(false);
     } catch (error) {
-      console.error('Error updating study:', error);
-      setError('Failed to update study. Please try again.');
+      console.error("Error updating study:", error);
+      setError("Failed to update study. Please try again.");
     }
   };
 
   const handleDeleteStudy = async (studyId) => {
     try {
-      setError('');
+      setError("");
       await authAPI.deleteStudy(user.id, studyId);
-      setStudies(prev => prev.filter(study => study.id !== studyId));
+      setStudies((prev) => prev.filter((study) => study.id !== studyId));
     } catch (error) {
-      console.error('Error deleting study:', error);
-      setError('Failed to delete study. Please try again.');
+      console.error("Error deleting study:", error);
+      setError("Failed to delete study. Please try again.");
     }
   };
 
@@ -97,37 +95,37 @@ function Studies() {
   const handleCloseDialog = () => {
     setEditingStudy(null);
     setOpenDialog(false);
-    setError('');
+    setError("");
   };
 
   const columns = [
-    { 
-      field: 'institution', 
-      headerName: 'Institution', 
+    {
+      field: "institution",
+      headerName: "Institution",
       flex: 1,
       minWidth: 200,
     },
-    { 
-      field: 'degree', 
-      headerName: 'Degree', 
+    {
+      field: "degree",
+      headerName: "Degree",
       flex: 1,
       minWidth: 150,
     },
-    { 
-      field: 'year', 
-      headerName: 'Year', 
+    {
+      field: "year",
+      headerName: "Year",
       flex: 1,
       minWidth: 100,
       renderCell: (params) => {
-        if (!params.value) return '';
-        // En este caso, 'params.value' es el año, y lo mostramos directamente.
-        return params.value.toString();  // Puedes agregar más lógica si lo necesitas
+        if (!params.value) return "";
+
+        return params.value.toString();
       },
     },
     {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
+      field: "actions",
+      type: "actions",
+      headerName: "Actions",
       width: 100,
       getActions: (params) => [
         <GridActionsCellItem
@@ -156,7 +154,12 @@ function Studies() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
         <Typography variant="h4">My Studies</Typography>
         <Button
           variant="contained"
@@ -172,8 +175,8 @@ function Studies() {
           {error}
         </Alert>
       )}
-      
-      <Paper sx={{ height: 600, width: '100%' }}>
+
+      <Paper sx={{ height: 600, width: "100%" }}>
         <DataGrid
           rows={studies}
           columns={columns}
@@ -191,22 +194,22 @@ function Studies() {
             },
           }}
           sx={{
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: 'primary.light',
-              color: 'common.black',
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "primary.light",
+              color: "common.black",
             },
-            '& .MuiDataGrid-menuIconButton': {
-              color: 'common.black',
+            "& .MuiDataGrid-menuIconButton": {
+              color: "common.black",
             },
-            '& .MuiDataGrid-toolbarContainer': {
+            "& .MuiDataGrid-toolbarContainer": {
               p: 2,
             },
           }}
         />
       </Paper>
 
-      <StudyFormDialog 
-        open={openDialog} 
+      <StudyFormDialog
+        open={openDialog}
         onClose={handleCloseDialog}
         onCreate={handleCreateStudy}
         onUpdate={handleUpdateStudy}

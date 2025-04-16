@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
     loadSession();
   }, []);
 
-  // Login mejorado con manejo de errores
+  // Login 
   const login = useCallback(async (email, password) => {
     try {
       const response = await authAPI.login(email, password);
@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
     }
   }, [navigate]);
 
-  // Logout mejorado
+  // Logout 
   const logout = useCallback(() => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { useState, useEffect } from "react";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import {
   Box,
   Button,
@@ -14,24 +14,31 @@ import {
   Alert,
   CircularProgress,
   Fade,
-} from '@mui/material';
-import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../api/auth';
-import zocoLogo from '../../assets/zoco-logo.png';
-import SplashScreen from '../../components/common/SplashScreen';
+} from "@mui/material";
+import { useAuth } from "../../context/AuthContext";
+import { authAPI } from "../../api/auth";
+import zocoLogo from "../../assets/zoco-logo.png";
+import SplashScreen from "../../components/common/SplashScreen";
 
 const schema = yup.object().shape({
-  email: yup.string().email('Invalid email format').required('Email is required'),
-  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
 });
 
 function Login() {
   const navigate = useNavigate();
   const { login, loading: authLoading } = useAuth();
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [showSplashBeforeDashboard, setShowSplashBeforeDashboard] = useState(false);
+  const [showSplashBeforeDashboard, setShowSplashBeforeDashboard] =
+    useState(false);
 
   const {
     register,
@@ -39,14 +46,14 @@ function Login() {
     formState: { errors, isValid },
   } = useForm({
     resolver: yupResolver(schema),
-    mode: 'onChange',
+    mode: "onChange",
   });
 
   useEffect(() => {
     if (showSplashBeforeDashboard) {
       const timer = setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000); // Duración del SplashScreen antes de navegar al dashboard
+        navigate("/dashboard");
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
@@ -54,19 +61,19 @@ function Login() {
 
   const onSubmit = async (data) => {
     try {
-      setError('');
+      setError("");
       setSubmitting(true);
       const response = await authAPI.login(data.email, data.password);
 
       if (response.success) {
         await login(data.email, data.password);
-        setShowSplashBeforeDashboard(true); // Mostrar SplashScreen antes de navegar
+        setShowSplashBeforeDashboard(true);
       } else {
-        setError(response.message || 'Invalid credentials');
+        setError(response.message || "Invalid credentials");
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      console.error("Login error:", err);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -87,7 +94,7 @@ function Login() {
   }
 
   if (showSplashBeforeDashboard) {
-    return <SplashScreen />; // Mostrar SplashScreen sin callback ya que la navegación se maneja con el useEffect
+    return <SplashScreen />;
   }
 
   return (
@@ -96,9 +103,9 @@ function Login() {
         <Box
           sx={{
             marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
           <Box
@@ -112,7 +119,7 @@ function Login() {
             Sign in to your account
           </Typography>
 
-          <Paper elevation={3} sx={{ mt: 3, p: 4, width: '100%' }}>
+          <Paper elevation={3} sx={{ mt: 3, p: 4, width: "100%" }}>
             {error && (
               <Alert severity="error" sx={{ mb: 3 }}>
                 {error}
@@ -128,7 +135,7 @@ function Login() {
                 label="Email Address"
                 autoComplete="email"
                 autoFocus
-                {...register('email')}
+                {...register("email")}
                 error={!!errors.email}
                 helperText={errors.email?.message}
                 disabled={submitting}
@@ -142,7 +149,7 @@ function Login() {
                 type="password"
                 id="password"
                 autoComplete="current-password"
-                {...register('password')}
+                {...register("password")}
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 disabled={submitting}
@@ -158,7 +165,7 @@ function Login() {
                 {submitting ? (
                   <CircularProgress size={24} color="inherit" />
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </Button>
 
@@ -167,7 +174,7 @@ function Login() {
                   component={RouterLink}
                   to="/forgot-password"
                   variant="body2"
-                  sx={{ textDecoration: 'none' }}
+                  sx={{ textDecoration: "none" }}
                 >
                   Forgot password?
                 </Link>
@@ -177,7 +184,7 @@ function Login() {
 
           <Box mt={3} textAlign="center">
             <Typography variant="body2" color="text.secondary">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link
                 component={RouterLink}
                 to="/register"
