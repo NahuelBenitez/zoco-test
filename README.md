@@ -4,7 +4,7 @@ Aplicación SPA construida con React que incluye autenticación con roles, manej
 
 ## 🚀 Demo
 
-[Ver aplicación en vivo](https://tu-deploy-en-vercel.com) (reemplazar con tu link real)
+[Ver aplicación en vivo](https://zoco-test-2c6y6103d-nahuel-benitezs-projects.vercel.app/) 
 
 ## 📌 Características Principales
 
