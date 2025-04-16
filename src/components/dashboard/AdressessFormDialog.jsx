@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import {
   Dialog,
   DialogTitle,
@@ -12,23 +12,29 @@ import {
   Box,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { authAPI } from '../../api/auth';
-import { useAuth } from '../../context/AuthContext';
+} from "@mui/material";
+import { authAPI } from "../../api/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const schema = yup.object().shape({
-  street: yup.string().required('Street is required'),
-  city: yup.string().required('City is required'),
-  state: yup.string().required('State is required'),
-  zip: yup.string().required('Zip code is required'),
-  country: yup.string().required('Country is required'),
+  street: yup.string().required("Street is required"),
+  city: yup.string().required("City is required"),
+  state: yup.string().required("State is required"),
+  zip: yup.string().required("Zip code is required"),
+  country: yup.string().required("Country is required"),
 });
 
-function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }) {
+function AddressFormDialog({
+  open,
+  onClose,
+  onCreate,
+  onUpdate,
+  editingAddress,
+}) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { user } = useAuth();
-  
+
   const {
     register,
     handleSubmit,
@@ -37,17 +43,16 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
     setValue,
   } = useForm({
     resolver: yupResolver(schema),
-    mode: 'onChange',
+    mode: "onChange",
   });
 
-  // Reset form when editingAddress changes
   useEffect(() => {
     if (editingAddress) {
-      setValue('street', editingAddress.street);
-      setValue('city', editingAddress.city);
-      setValue('state', editingAddress.state);
-      setValue('zip', editingAddress.zip);
-      setValue('country', editingAddress.country);
+      setValue("street", editingAddress.street);
+      setValue("city", editingAddress.city);
+      setValue("state", editingAddress.state);
+      setValue("zip", editingAddress.zip);
+      setValue("country", editingAddress.country);
     } else {
       reset();
     }
@@ -56,22 +61,24 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      setError('');
-      
+      setError("");
+
       if (editingAddress) {
-        // Update existing address
-        const updatedAddress = await authAPI.updateAddress(user.id, editingAddress.id, data);
+        const updatedAddress = await authAPI.updateAddress(
+          user.id,
+          editingAddress.id,
+          data
+        );
         onUpdate(updatedAddress);
       } else {
-        // Create new address
         const newAddress = await authAPI.addAddress(user.id, data);
         onCreate(newAddress);
       }
-      
+
       handleClose();
     } catch (err) {
-      console.error('Error saving address:', err);
-      setError(err.message || 'Failed to save address. Please try again.');
+      console.error("Error saving address:", err);
+      setError(err.message || "Failed to save address. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,20 +86,27 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
 
   const handleClose = () => {
     reset();
-    setError('');
+    setError("");
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
+      <DialogTitle>
+        {editingAddress ? "Edit Address" : "Add New Address"}
+      </DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          sx={{ mt: 1 }}
+        >
           <TextField
             margin="normal"
             required
@@ -101,7 +115,7 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
             label="Street"
             autoComplete="street-address"
             autoFocus
-            {...register('street')}
+            {...register("street")}
             error={!!errors.street}
             helperText={errors.street?.message}
             disabled={loading}
@@ -113,7 +127,7 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
             id="city"
             label="City"
             autoComplete="address-level2"
-            {...register('city')}
+            {...register("city")}
             error={!!errors.city}
             helperText={errors.city?.message}
             disabled={loading}
@@ -125,7 +139,7 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
             id="state"
             label="State/Province"
             autoComplete="address-level1"
-            {...register('state')}
+            {...register("state")}
             error={!!errors.state}
             helperText={errors.state?.message}
             disabled={loading}
@@ -137,7 +151,7 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
             id="zip"
             label="Zip/Postal Code"
             autoComplete="postal-code"
-            {...register('zip')}
+            {...register("zip")}
             error={!!errors.zip}
             helperText={errors.zip?.message}
             disabled={loading}
@@ -149,7 +163,7 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
             id="country"
             label="Country"
             autoComplete="country"
-            {...register('country')}
+            {...register("country")}
             error={!!errors.country}
             helperText={errors.country?.message}
             disabled={loading}
@@ -160,12 +174,18 @@ function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }
         <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
-        <Button 
-          onClick={handleSubmit(onSubmit)} 
+        <Button
+          onClick={handleSubmit(onSubmit)}
           variant="contained"
           disabled={loading || !isValid}
         >
-          {loading ? <CircularProgress size={24} /> : (editingAddress ? 'Update' : 'Add')}
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : editingAddress ? (
+            "Update"
+          ) : (
+            "Add"
+          )}
         </Button>
       </DialogActions>
     </Dialog>

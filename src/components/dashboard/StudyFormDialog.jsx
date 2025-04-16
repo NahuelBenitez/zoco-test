@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import {
   Dialog,
   DialogTitle,
@@ -12,24 +12,25 @@ import {
   Box,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { authAPI } from '../../api/auth';
-import { useAuth } from '../../context/AuthContext';
+} from "@mui/material";
+import { authAPI } from "../../api/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const schema = yup.object().shape({
-  institution: yup.string().required('Institution is required'),
-  degree: yup.string().required('Degree is required'),
-  year: yup.number()
-    .required('Year is required')
-    .min(1900, 'Year must be after 1900')
-    .max(new Date().getFullYear(), 'Year cannot be in the future'),
+  institution: yup.string().required("Institution is required"),
+  degree: yup.string().required("Degree is required"),
+  year: yup
+    .number()
+    .required("Year is required")
+    .min(1900, "Year must be after 1900")
+    .max(new Date().getFullYear(), "Year cannot be in the future"),
 });
 
 function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { user } = useAuth();
-  
+
   const {
     register,
     handleSubmit,
@@ -38,15 +39,14 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
     setValue,
   } = useForm({
     resolver: yupResolver(schema),
-    mode: 'onChange',
+    mode: "onChange",
   });
 
- 
   useEffect(() => {
     if (editingStudy) {
-      setValue('institution', editingStudy.institution);
-      setValue('degree', editingStudy.degree);
-      setValue('year', editingStudy.year);
+      setValue("institution", editingStudy.institution);
+      setValue("degree", editingStudy.degree);
+      setValue("year", editingStudy.year);
     } else {
       reset();
     }
@@ -55,22 +55,24 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      setError('');
-      
+      setError("");
+
       if (editingStudy) {
-        // Update existing study
-        const updatedStudy = await authAPI.updateStudy(user.id, editingStudy.id, data);
+        const updatedStudy = await authAPI.updateStudy(
+          user.id,
+          editingStudy.id,
+          data
+        );
         onUpdate(updatedStudy);
       } else {
-        // Create new study
         const newStudy = await authAPI.addStudy(user.id, data);
         onCreate(newStudy);
       }
-      
+
       handleClose();
     } catch (err) {
-      console.error('Error saving study:', err);
-      setError(err.message || 'Failed to save study. Please try again.');
+      console.error("Error saving study:", err);
+      setError(err.message || "Failed to save study. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,20 +80,25 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
 
   const handleClose = () => {
     reset();
-    setError('');
+    setError("");
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{editingStudy ? 'Edit Study' : 'Add New Study'}</DialogTitle>
+      <DialogTitle>{editingStudy ? "Edit Study" : "Add New Study"}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          sx={{ mt: 1 }}
+        >
           <TextField
             margin="normal"
             required
@@ -100,7 +107,7 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
             label="Institution"
             autoComplete="institution"
             autoFocus
-            {...register('institution')}
+            {...register("institution")}
             error={!!errors.institution}
             helperText={errors.institution?.message}
             disabled={loading}
@@ -112,7 +119,7 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
             id="degree"
             label="Degree"
             autoComplete="degree"
-            {...register('degree')}
+            {...register("degree")}
             error={!!errors.degree}
             helperText={errors.degree?.message}
             disabled={loading}
@@ -124,7 +131,7 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
             id="year"
             label="Year"
             type="number"
-            {...register('year')}
+            {...register("year")}
             error={!!errors.year}
             helperText={errors.year?.message}
             disabled={loading}
@@ -135,12 +142,18 @@ function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
         <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
-        <Button 
-          onClick={handleSubmit(onSubmit)} 
+        <Button
+          onClick={handleSubmit(onSubmit)}
           variant="contained"
           disabled={loading || !isValid}
         >
-          {loading ? <CircularProgress size={24} /> : (editingStudy ? 'Update Study' : 'Add Study')}
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : editingStudy ? (
+            "Update Study"
+          ) : (
+            "Add Study"
+          )}
         </Button>
       </DialogActions>
     </Dialog>

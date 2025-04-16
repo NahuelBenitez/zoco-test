@@ -1,9 +1,9 @@
 import initialData from '../data/data.json';
 
-// Clave para localStorage
+
 const DB_KEY = 'user-management-app-data';
 
-// Cargar datos iniciales o existentes
+
 const loadDatabase = () => {
   const savedData = localStorage.getItem(DB_KEY);
   return savedData ? JSON.parse(savedData) : { 
@@ -15,14 +15,14 @@ const loadDatabase = () => {
 
 let database = loadDatabase();
 
-// Guardar cambios en localStorage
+
 const saveDatabase = () => {
   localStorage.setItem(DB_KEY, JSON.stringify(database));
 };
 
-// API Mock completa
+
 export const authAPI = {
-  // Autenticación
+
   login: async (email, password) => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -47,7 +47,7 @@ export const authAPI = {
     });
   },
 
-  // Operaciones de usuario
+
   getUsers: async () => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -120,8 +120,8 @@ export const authAPI = {
           database.users[userIndex] = {
             ...database.users[userIndex],
             ...userData,
-            id: userId, // Asegurar que no se modifique el ID
-            password: database.users[userIndex].password // Mantener la contraseña existente
+            id: userId, 
+            password: database.users[userIndex].password 
           };
           saveDatabase();
           resolve({...database.users[userIndex], password: undefined});
@@ -132,11 +132,11 @@ export const authAPI = {
     });
   },
 
-  // Nuevo método para eliminar usuarios
+  
   deleteUser: async (userId) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // No permitir eliminar usuarios si solo queda uno
+  
         if (database.users.length <= 1) {
           resolve(false);
           return;
@@ -144,10 +144,10 @@ export const authAPI = {
         
         const userIndex = database.users.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
-          // Eliminar el usuario
+  
           database.users.splice(userIndex, 1);
           
-          // Eliminar datos asociados
+  
           if (database.studiesData[userId]) {
             delete database.studiesData[userId];
           }
@@ -165,7 +165,7 @@ export const authAPI = {
     });
   },
 
-  // Operaciones de estudios
+  
   getUserStudies: async (userId) => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -212,7 +212,7 @@ export const authAPI = {
           database.studiesData[userId][studyIndex] = {
             ...database.studiesData[userId][studyIndex],
             ...studyData,
-            id: studyId // Mantener el ID original
+            id: studyId 
           };
           saveDatabase();
           resolve(database.studiesData[userId][studyIndex]);
@@ -236,7 +236,7 @@ export const authAPI = {
     });
   },
 
-  // Operaciones de direcciones
+  
   getUserAddresses: async (userId) => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -257,15 +257,15 @@ export const authAPI = {
   addAddress: async (userId, addressData) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Ensure addressesData exists for this user
+        
         if (!database.addressesData[userId]) {
           database.addressesData[userId] = [];
         }
         
-        // Make sure we're working with an actual array that can be modified
+        
         if (Object.isFrozen(database.addressesData[userId]) || 
             !Array.isArray(database.addressesData[userId])) {
-          // If frozen or not an array, create a new array
+          
           database.addressesData[userId] = [...(Array.isArray(database.addressesData[userId]) 
             ? database.addressesData[userId] 
             : [])];
@@ -287,8 +287,7 @@ export const authAPI = {
 
   updateAddress: async (userId, addressId, addressData) => {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        // Ensure we're working with a mutable array
+      setTimeout(() => {        
         if (!database.addressesData[userId] || Object.isFrozen(database.addressesData[userId])) {
           database.addressesData[userId] = [...(database.addressesData[userId] || [])];
         }
