@@ -3,27 +3,23 @@ import {
   Box, 
   Typography, 
   Button, 
-  Paper, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow,
+  Paper,
   CircularProgress,
   Alert,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import { 
   Add as AddIcon, 
   Edit as EditIcon,
   Delete as DeleteIcon 
 } from '@mui/icons-material';
+import { 
+  DataGrid, 
+  GridToolbar,
+  GridActionsCellItem 
+} from '@mui/x-data-grid';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../api/auth';
 import AddressFormDialog from '../../components/dashboard/AdressessFormDialog';
-
 
 function Addresses() {
   const [addresses, setAddresses] = useState([]);
@@ -106,6 +102,59 @@ function Addresses() {
     setError('');
   };
 
+  const columns = [
+    { 
+      field: 'street', 
+      headerName: 'Street', 
+      flex: 1,
+      minWidth: 150,
+    },
+    { 
+      field: 'city', 
+      headerName: 'City', 
+      flex: 1,
+      minWidth: 100,
+    },
+    { 
+      field: 'state', 
+      headerName: 'State', 
+      flex: 1,
+      minWidth: 100,
+    },
+    { 
+      field: 'zip', 
+      headerName: 'Zip Code', 
+      flex: 1,
+      minWidth: 100,
+    },
+    { 
+      field: 'country', 
+      headerName: 'Country', 
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      getActions: (params) => [
+        <GridActionsCellItem
+          icon={<EditIcon />}
+          label="Edit"
+          onClick={() => handleOpenEditDialog(params.row)}
+          showInMenu
+        />,
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
+          label="Delete"
+          onClick={() => handleDeleteAddress(params.row.id)}
+          showInMenu
+        />,
+      ],
+    },
+  ];
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -133,51 +182,37 @@ function Addresses() {
         </Alert>
       )}
       
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Street</TableCell>
-              <TableCell>City</TableCell>
-              <TableCell>State</TableCell>
-              <TableCell>Zip</TableCell>
-              <TableCell>Country</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {addresses.length > 0 ? (
-              addresses.map((address) => (
-                <TableRow key={address.id}>
-                  <TableCell>{address.street}</TableCell>
-                  <TableCell>{address.city}</TableCell>
-                  <TableCell>{address.state}</TableCell>
-                  <TableCell>{address.zip}</TableCell>
-                  <TableCell>{address.country}</TableCell>
-                  <TableCell>
-                    <Tooltip title="Edit">
-                      <IconButton onClick={() => handleOpenEditDialog(address)}>
-                        <EditIcon color="primary" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton onClick={() => handleDeleteAddress(address.id)}>
-                        <DeleteIcon color="error" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No addresses found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={addresses}
+          columns={columns}
+          pageSize={10}
+          rowsPerPageOptions={[5, 10, 20]}
+          disableSelectionOnClick
+          getRowId={(row) => row.id}
+          components={{
+            Toolbar: GridToolbar,
+          }}
+          componentsProps={{
+            toolbar: {
+              showQuickFilter: true,
+              quickFilterProps: { debounceMs: 500 },
+            },
+          }}
+          sx={{
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: 'primary.light',
+              color: 'common.black',
+            },
+            '& .MuiDataGrid-menuIconButton': {
+              color: 'common.black',
+            },
+            '& .MuiDataGrid-toolbarContainer': {
+              p: 2,
+            },
+          }}
+        />
+      </Paper>
 
       <AddressFormDialog 
         open={openDialog} 
