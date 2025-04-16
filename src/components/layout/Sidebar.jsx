@@ -1,17 +1,17 @@
-import { 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
-  ListItemText, 
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   Divider,
   Toolbar,
   IconButton,
   useTheme,
   useMediaQuery,
-  styled
-} from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+  styled,
+} from "@mui/material";
+import { Link, useLocation } from "react-router-dom";
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
@@ -20,48 +20,46 @@ import {
   Home as HomeIcon,
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
-} from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext';
-import { useState } from 'react';
-import zocoLogo from '../../assets/zoco-logo.png'; 
+} from "@mui/icons-material";
+import { useAuth } from "../../context/AuthContext";
+import { useState } from "react";
+import zocoLogo from "../../assets/zoco-logo.png";
 
-// Colores personalizados para el Sidebar
-const sidebarBgColor = '#2C3E50';  // Negro pastel
-const sidebarTextColor = '#FFFFFF';
-const sidebarHoverColor = '#34495E';  // Color ligeramente más oscuro para hover
-const sidebarHoverUnderlineColor = '#F39C12';  // Amarillo para la línea de hover
-const sidebarSelectedColor = '#1ABC9C'; // Color para el item seleccionado
+const sidebarBgColor = "#2C3E50";
+const sidebarTextColor = "#FFFFFF";
+const sidebarHoverColor = "#34495E";
+const sidebarHoverUnderlineColor = "#F39C12";
+const sidebarSelectedColor = "#1ABC9C";
 
-// Estilo para los ListItems
 const StyledListItem = styled(ListItem)(({ theme, selected }) => ({
   color: sidebarTextColor,
   paddingLeft: theme.spacing(3),
   paddingRight: theme.spacing(3),
   marginBottom: theme.spacing(1),
-  transition: 'all 0.3s ease-in-out',  // Transición suave para hover y selected
-  
-  '&:hover': {
+  transition: "all 0.3s ease-in-out",
+
+  "&:hover": {
     backgroundColor: sidebarHoverColor,
-    '& .MuiListItemText-primary': {
+    "& .MuiListItemText-primary": {
       color: sidebarTextColor,
     },
-    '&::after': {
+    "&::after": {
       content: '""',
-      position: 'absolute',
-      left: '0',
-      bottom: '-5px',  // Línea debajo
-      width: '100%',
-      height: '3px',
-      backgroundColor: sidebarHoverUnderlineColor, // Línea amarilla
-      transition: 'all 0.3s ease', // Transición para la línea amarilla
-    }
+      position: "absolute",
+      left: "0",
+      bottom: "-5px",
+      width: "100%",
+      height: "3px",
+      backgroundColor: sidebarHoverUnderlineColor,
+      transition: "all 0.3s ease",
+    },
   },
   ...(selected && {
     backgroundColor: sidebarSelectedColor,
-    '& .MuiListItemIcon-root': {
+    "& .MuiListItemIcon-root": {
       color: sidebarTextColor,
     },
-    '& .MuiListItemText-primary': {
+    "& .MuiListItemText-primary": {
       color: sidebarTextColor,
     },
   }),
@@ -71,7 +69,7 @@ function Sidebar() {
   const location = useLocation();
   const { role } = useAuth();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(!isMobile);
 
   const toggleDrawer = () => {
@@ -80,30 +78,30 @@ function Sidebar() {
 
   const menuItems = [
     {
-      text: 'Profile',
+      text: "Profile",
       icon: <PersonIcon />,
-      path: '/dashboard',
-      roles: ['admin', 'user'],
+      path: "/dashboard",
+      roles: ["admin", "user"],
     },
     {
-      text: 'Studies',
+      text: "Studies",
       icon: <SchoolIcon />,
-      path: '/dashboard/studies',
-      roles: ['admin', 'user'],
+      path: "/dashboard/studies",
+      roles: ["admin", "user"],
     },
     {
-      text: 'Addresses',
+      text: "Addresses",
       icon: <HomeIcon />,
-      path: '/dashboard/addresses',
-      roles: ['admin', 'user'],
+      path: "/dashboard/addresses",
+      roles: ["admin", "user"],
     },
-    ...(role === 'admin'
+    ...(role === "admin"
       ? [
           {
-            text: 'Users',
+            text: "Users",
             icon: <PeopleIcon />,
-            path: '/dashboard/users',
-            roles: ['admin'],
+            path: "/dashboard/users",
+            roles: ["admin"],
           },
         ]
       : []),
@@ -118,13 +116,13 @@ function Sidebar() {
           onClick={toggleDrawer}
           edge="start"
           sx={{
-            position: 'fixed',
+            position: "fixed",
             left: 10,
             top: 10,
             zIndex: theme.zIndex.drawer + 1,
             color: sidebarTextColor,
             backgroundColor: sidebarBgColor,
-            '&:hover': {
+            "&:hover": {
               backgroundColor: sidebarHoverColor,
             },
           }}
@@ -132,43 +130,43 @@ function Sidebar() {
           <MenuIcon />
         </IconButton>
       )}
-      
+
       <Drawer
-        variant={isMobile ? 'temporary' : 'permanent'}
+        variant={isMobile ? "temporary" : "permanent"}
         open={open}
         onClose={toggleDrawer}
         sx={{
           width: open ? 240 : 0,
           flexShrink: 0,
-          '& .MuiDrawer-paper': {
+          "& .MuiDrawer-paper": {
             width: 240,
-            boxSizing: 'border-box',
+            boxSizing: "border-box",
             backgroundColor: sidebarBgColor,
             color: sidebarTextColor,
-            transition: theme.transitions.create('width', {
+            transition: theme.transitions.create("width", {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             }),
             ...(!open && {
-              overflowX: 'hidden',
-              transition: theme.transitions.create('width', {
+              overflowX: "hidden",
+              transition: theme.transitions.create("width", {
                 easing: theme.transitions.easing.sharp,
                 duration: theme.transitions.duration.leavingScreen,
               }),
               width: theme.spacing(7),
-              [theme.breakpoints.up('sm')]: {
+              [theme.breakpoints.up("sm")]: {
                 width: theme.spacing(9),
               },
             }),
           },
         }}
       >
-        <Toolbar sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "flex-end" }}>
           <IconButton onClick={toggleDrawer} sx={{ color: sidebarTextColor }}>
             <ChevronLeftIcon />
           </IconButton>
         </Toolbar>
-        <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
+        <Divider sx={{ backgroundColor: "rgba(255, 255, 255, 0.12)" }} />
         <List>
           {menuItems.map((item) => (
             <StyledListItem

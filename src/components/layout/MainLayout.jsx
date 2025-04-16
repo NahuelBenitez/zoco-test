@@ -1,8 +1,8 @@
-import { Outlet } from 'react-router-dom';
-import { Box, CssBaseline, Toolbar } from '@mui/material';
-import { useAuth } from '../../context/AuthContext';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
+import { Outlet } from "react-router-dom";
+import { Box, CssBaseline, Toolbar } from "@mui/material";
+import { useAuth } from "../../context/AuthContext";
+import Navbar from "./Navbar";
+import Sidebar from "./Sidebar";
 
 function MainLayout() {
   const { isAuthenticated } = useAuth();
@@ -14,9 +14,9 @@ function MainLayout() {
   return (
     <Box
       sx={{
-        display: 'flex',
-        background: 'linear-gradient(to right, #ffffff, #bdc3c7)', // Gradiente de blanco a plateado
-        minHeight: '100vh', // Asegura que el gradiente cubra toda la altura de la pantalla
+        display: "flex",
+        background: "linear-gradient(to right, #ffffff, #bdc3c7)",
+        minHeight: "100vh",
       }}
     >
       <CssBaseline />
