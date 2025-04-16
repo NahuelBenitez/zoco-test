@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -25,7 +25,7 @@ const schema = yup.object().shape({
     .max(new Date().getFullYear(), 'Year cannot be in the future'),
 });
 
-function StudyFormDialog({ open, onClose, onCreate }) {
+function StudyFormDialog({ open, onClose, onCreate, onUpdate, editingStudy }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { user } = useAuth();
@@ -35,24 +35,42 @@ function StudyFormDialog({ open, onClose, onCreate }) {
     handleSubmit,
     formState: { errors, isValid },
     reset,
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
     mode: 'onChange',
   });
+
+ 
+  useEffect(() => {
+    if (editingStudy) {
+      setValue('institution', editingStudy.institution);
+      setValue('degree', editingStudy.degree);
+      setValue('year', editingStudy.year);
+    } else {
+      reset();
+    }
+  }, [editingStudy, reset, setValue]);
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
       setError('');
       
-      // Llamada real a la API
-      const newStudy = await authAPI.addStudy(user.id, data);
+      if (editingStudy) {
+        // Update existing study
+        const updatedStudy = await authAPI.updateStudy(user.id, editingStudy.id, data);
+        onUpdate(updatedStudy);
+      } else {
+        // Create new study
+        const newStudy = await authAPI.addStudy(user.id, data);
+        onCreate(newStudy);
+      }
       
-      onCreate(newStudy); // Actualizar el estado en el componente padre
       handleClose();
     } catch (err) {
-      console.error('Error adding study:', err);
-      setError('Failed to add study. Please try again.');
+      console.error('Error saving study:', err);
+      setError(err.message || 'Failed to save study. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -66,7 +84,7 @@ function StudyFormDialog({ open, onClose, onCreate }) {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add New Study</DialogTitle>
+      <DialogTitle>{editingStudy ? 'Edit Study' : 'Add New Study'}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -122,7 +140,7 @@ function StudyFormDialog({ open, onClose, onCreate }) {
           variant="contained"
           disabled={loading || !isValid}
         >
-          {loading ? <CircularProgress size={24} /> : 'Add Study'}
+          {loading ? <CircularProgress size={24} /> : (editingStudy ? 'Update Study' : 'Add Study')}
         </Button>
       </DialogActions>
     </Dialog>

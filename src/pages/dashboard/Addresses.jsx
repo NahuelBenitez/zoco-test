@@ -8,9 +8,9 @@ import {
   Alert,
 } from '@mui/material';
 import { 
-  Add as AddIcon, 
+  Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon 
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { 
   DataGrid, 
@@ -81,10 +81,8 @@ function Addresses() {
   const handleDeleteAddress = async (addressId) => {
     try {
       setError('');
-      const success = await authAPI.deleteAddress(user.id, addressId);
-      if (success) {
-        setAddresses(prev => prev.filter(addr => addr.id !== addressId));
-      }
+      await authAPI.deleteAddress(user.id, addressId);
+      setAddresses(prev => prev.filter(addr => addr.id !== addressId));
     } catch (error) {
       console.error('Error deleting address:', error);
       setError('Failed to delete address. Please try again.');
@@ -107,13 +105,13 @@ function Addresses() {
       field: 'street', 
       headerName: 'Street', 
       flex: 1,
-      minWidth: 150,
+      minWidth: 200,
     },
     { 
       field: 'city', 
       headerName: 'City', 
       flex: 1,
-      minWidth: 100,
+      minWidth: 150,
     },
     { 
       field: 'state', 

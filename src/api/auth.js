@@ -132,6 +132,39 @@ export const authAPI = {
     });
   },
 
+  // Nuevo método para eliminar usuarios
+  deleteUser: async (userId) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // No permitir eliminar usuarios si solo queda uno
+        if (database.users.length <= 1) {
+          resolve(false);
+          return;
+        }
+        
+        const userIndex = database.users.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+          // Eliminar el usuario
+          database.users.splice(userIndex, 1);
+          
+          // Eliminar datos asociados
+          if (database.studiesData[userId]) {
+            delete database.studiesData[userId];
+          }
+          
+          if (database.addressesData[userId]) {
+            delete database.addressesData[userId];
+          }
+          
+          saveDatabase();
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      }, 500);
+    });
+  },
+
   // Operaciones de estudios
   getUserStudies: async (userId) => {
     return new Promise((resolve) => {
@@ -224,12 +257,24 @@ export const authAPI = {
   addAddress: async (userId, addressData) => {
     return new Promise((resolve) => {
       setTimeout(() => {
+        // Ensure addressesData exists for this user
         if (!database.addressesData[userId]) {
           database.addressesData[userId] = [];
         }
+        
+        // Make sure we're working with an actual array that can be modified
+        if (Object.isFrozen(database.addressesData[userId]) || 
+            !Array.isArray(database.addressesData[userId])) {
+          // If frozen or not an array, create a new array
+          database.addressesData[userId] = [...(Array.isArray(database.addressesData[userId]) 
+            ? database.addressesData[userId] 
+            : [])];
+        }
 
         const newAddress = {
-          id: database.addressesData[userId].length + 1,
+          id: (database.addressesData[userId].length > 0 
+            ? Math.max(...database.addressesData[userId].map(a => a.id)) + 1 
+            : 1),
           ...addressData
         };
 
@@ -243,6 +288,11 @@ export const authAPI = {
   updateAddress: async (userId, addressId, addressData) => {
     return new Promise((resolve) => {
       setTimeout(() => {
+        // Ensure we're working with a mutable array
+        if (!database.addressesData[userId] || Object.isFrozen(database.addressesData[userId])) {
+          database.addressesData[userId] = [...(database.addressesData[userId] || [])];
+        }
+        
         const addresses = database.addressesData[userId] || [];
         const addressIndex = addresses.findIndex(a => a.id === addressId);
         
@@ -265,6 +315,7 @@ export const authAPI = {
     return new Promise((resolve) => {
       setTimeout(() => {
         if (database.addressesData[userId]) {
+          // Create a new array without the target address
           database.addressesData[userId] = database.addressesData[userId].filter(a => a.id !== addressId);
           saveDatabase();
           resolve(true);

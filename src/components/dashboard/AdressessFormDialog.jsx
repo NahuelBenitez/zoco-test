@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -11,7 +11,10 @@ import {
   TextField,
   Box,
   CircularProgress,
+  Alert,
 } from '@mui/material';
+import { authAPI } from '../../api/auth';
+import { useAuth } from '../../context/AuthContext';
 
 const schema = yup.object().shape({
   street: yup.string().required('Street is required'),
@@ -21,36 +24,54 @@ const schema = yup.object().shape({
   country: yup.string().required('Country is required'),
 });
 
-function AddressFormDialog({ open, onClose, onCreate }) {
+function AddressFormDialog({ open, onClose, onCreate, onUpdate, editingAddress }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { user } = useAuth();
   
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
+    mode: 'onChange',
   });
+
+  // Reset form when editingAddress changes
+  useEffect(() => {
+    if (editingAddress) {
+      setValue('street', editingAddress.street);
+      setValue('city', editingAddress.city);
+      setValue('state', editingAddress.state);
+      setValue('zip', editingAddress.zip);
+      setValue('country', editingAddress.country);
+    } else {
+      reset();
+    }
+  }, [editingAddress, reset, setValue]);
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
       setError('');
       
-      // In a real app, this would call an API
-      const newAddress = {
-        id: Math.floor(Math.random() * 10000),
-        ...data,
-      };
+      if (editingAddress) {
+        // Update existing address
+        const updatedAddress = await authAPI.updateAddress(user.id, editingAddress.id, data);
+        onUpdate(updatedAddress);
+      } else {
+        // Create new address
+        const newAddress = await authAPI.addAddress(user.id, data);
+        onCreate(newAddress);
+      }
       
-      onCreate(newAddress);
-      
-      onClose();
-      reset();
+      handleClose();
     } catch (err) {
-      setError('Failed to add address');
+      console.error('Error saving address:', err);
+      setError(err.message || 'Failed to save address. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -58,19 +79,20 @@ function AddressFormDialog({ open, onClose, onCreate }) {
 
   const handleClose = () => {
     reset();
+    setError('');
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add New Address</DialogTitle>
+      <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
       <DialogContent>
         {error && (
-          <Box color="error.main" mb={2}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
-          </Box>
+          </Alert>
         )}
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
             required
@@ -82,6 +104,7 @@ function AddressFormDialog({ open, onClose, onCreate }) {
             {...register('street')}
             error={!!errors.street}
             helperText={errors.street?.message}
+            disabled={loading}
           />
           <TextField
             margin="normal"
@@ -93,6 +116,7 @@ function AddressFormDialog({ open, onClose, onCreate }) {
             {...register('city')}
             error={!!errors.city}
             helperText={errors.city?.message}
+            disabled={loading}
           />
           <TextField
             margin="normal"
@@ -104,6 +128,7 @@ function AddressFormDialog({ open, onClose, onCreate }) {
             {...register('state')}
             error={!!errors.state}
             helperText={errors.state?.message}
+            disabled={loading}
           />
           <TextField
             margin="normal"
@@ -115,6 +140,7 @@ function AddressFormDialog({ open, onClose, onCreate }) {
             {...register('zip')}
             error={!!errors.zip}
             helperText={errors.zip?.message}
+            disabled={loading}
           />
           <TextField
             margin="normal"
@@ -126,6 +152,7 @@ function AddressFormDialog({ open, onClose, onCreate }) {
             {...register('country')}
             error={!!errors.country}
             helperText={errors.country?.message}
+            disabled={loading}
           />
         </Box>
       </DialogContent>
@@ -136,9 +163,9 @@ function AddressFormDialog({ open, onClose, onCreate }) {
         <Button 
           onClick={handleSubmit(onSubmit)} 
           variant="contained"
-          disabled={loading}
+          disabled={loading || !isValid}
         >
-          {loading ? <CircularProgress size={24} /> : 'Add'}
+          {loading ? <CircularProgress size={24} /> : (editingAddress ? 'Update' : 'Add')}
         </Button>
       </DialogActions>
     </Dialog>

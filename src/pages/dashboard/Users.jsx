@@ -3,28 +3,24 @@ import {
   Box, 
   Typography, 
   Button, 
-  Paper, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow,
+  Paper,
   CircularProgress,
   Alert,
-  IconButton,
-  Tooltip,
-  Chip,
+  Chip
 } from '@mui/material';
 import { 
-  Add as AddIcon, 
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon 
 } from '@mui/icons-material';
+import { 
+  DataGrid, 
+  GridToolbar,
+  GridActionsCellItem 
+} from '@mui/x-data-grid';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../api/auth';
 import CreateUserDialog from '../../components/dashboard/CreateUserDialog';
-
 
 function Users() {
   const [users, setUsers] = useState([]);
@@ -108,6 +104,68 @@ function Users() {
     setError('');
   };
 
+  const columns = [
+    { 
+      field: 'id', 
+      headerName: 'ID', 
+      width: 70 
+    },
+    { 
+      field: 'name', 
+      headerName: 'Name', 
+      flex: 1,
+      minWidth: 200,
+    },
+    { 
+      field: 'email', 
+      headerName: 'Email', 
+      flex: 1,
+      minWidth: 250,
+    },
+    { 
+      field: 'role', 
+      headerName: 'Role', 
+      width: 120,
+      renderCell: (params) => (
+        <Chip 
+          label={params.value} 
+          color={params.value === 'admin' ? 'primary' : 'default'} 
+          size="small"
+        />
+      ),
+    },
+  ];
+
+  // Add actions column only for admin users
+  if (role === 'admin') {
+    columns.push({
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      getActions: (params) => {
+        const isCurrentUser = params.row.id === currentUser.id;
+        return [
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            onClick={() => handleOpenEditDialog(params.row)}
+            disabled={isCurrentUser}
+            showInMenu
+          />,
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={() => handleDeleteUser(params.row.id)}
+            disabled={isCurrentUser}
+            showInMenu
+            sx={{ color: 'error.main' }}
+          />,
+        ];
+      },
+    });
+  }
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -137,62 +195,37 @@ function Users() {
         </Alert>
       )}
       
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              {role === 'admin' && <TableCell>Actions</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.length > 0 ? (
-              users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={user.role} 
-                      color={user.role === 'admin' ? 'primary' : 'default'} 
-                    />
-                  </TableCell>
-                  {role === 'admin' && (
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton 
-                          onClick={() => handleOpenEditDialog(user)}
-                          disabled={user.id === currentUser.id}
-                        >
-                          <EditIcon color={user.id === currentUser.id ? 'disabled' : 'primary'} />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton 
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={user.id === currentUser.id}
-                        >
-                          <DeleteIcon color={user.id === currentUser.id ? 'disabled' : 'error'} />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={role === 'admin' ? 5 : 4} align="center">
-                  No users found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={users}
+          columns={columns}
+          pageSize={10}
+          rowsPerPageOptions={[5, 10, 20]}
+          disableSelectionOnClick
+          getRowId={(row) => row.id}
+          components={{
+            Toolbar: GridToolbar,
+          }}
+          componentsProps={{
+            toolbar: {
+              showQuickFilter: true,
+              quickFilterProps: { debounceMs: 500 },
+            },
+          }}
+          sx={{
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: 'primary.light',
+              color: 'common.black',
+            },
+            '& .MuiDataGrid-menuIconButton': {
+              color: 'common.black',
+            },
+            '& .MuiDataGrid-toolbarContainer': {
+              p: 2,
+            },
+          }}
+        />
+      </Paper>
 
       <CreateUserDialog
         open={openDialog} 

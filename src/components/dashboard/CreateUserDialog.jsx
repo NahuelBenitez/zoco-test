@@ -17,7 +17,6 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { authAPI } from '../../api/auth';
 
 function CreateUserDialog({ 
   open, 
@@ -54,7 +53,6 @@ function CreateUserDialog({
     mode: 'onChange',
   });
 
-  // Resto del componente permanece igual...
   // Reset form when editing user changes
   useEffect(() => {
     if (editingUser) {
@@ -109,7 +107,7 @@ function CreateUserDialog({
 
         {isEditing && isCurrentUser && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            Note: You cannot change your own role
+            Note: You cannot edit your own account
           </Alert>
         )}
 
